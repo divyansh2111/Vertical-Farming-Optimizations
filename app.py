@@ -15,6 +15,7 @@ json_file.close()
 model1 = tf.keras.models.model_from_json(loaded_model_json)
 # load weights into new model
 model1.load_weights("models/EfficientNet_weights.h5")
+cnt = 0
 
 def get_recomm(model, crop, env_temp, env_humidity, env_ph, env_rainfall):
     crops = ['rice', 'maize', 'chickpea', 'kidneybeans', 'pigeonpeas',
@@ -68,18 +69,22 @@ def nutrients_run():
 
 @app.route("/disease", methods=['GET', 'POST'])
 def disease_pred():
+  global cnt
   if request.method == 'POST':
     img_file = request.files["image"]
     # print("FFFF ----- ", img_file.filename)
     if img_file:
-      img = os.path.join(os.getcwd(), 'static', 'images', img_file.filename)
+      img_name = str(img_file.filename).split('.')[0] + str(cnt) + str(img_file.filename).split('.')[1]
+      img = os.path.join(os.getcwd(), 'static', 'images', img_name)
+      cnt+=1
       img_file.save(img)
       image = cv2.imread(img)
       # image = process(image)
       # print(image.shape)
       pred = "FF"
       pred = predict(model1, image)
-      return render_template('disease.html', img = img_file.filename, prediction=pred)
+      # print(img_file.filename)
+      return render_template('disease.html', img = img_name, prediction=pred)
   return render_template('disease.html')
 
 @app.route("/presentation")
